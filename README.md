@@ -66,6 +66,8 @@ https://pmc.ncbi.nlm.nih.gov/articles/PMC7843431/
 https://www.omron.com/global/en/general/privacy/
 
 
+
+
 The **Hockey Game Simulator** is a Python-based simulation that creates a dynamic hockey league with teams, players, and game events. It simulates real-game scenarios including regular periods, overtime, shootouts, injuries, line changes, and energy management.
 
 ## Features
