@@ -1,5 +1,5 @@
 # Hockey Game Simulator
-# Ai Ethics Questions: Assignments 1 and 2
+# AI Ethics Questions: Assignments 1 and 2
 Assignment #1
 
 Question 1
