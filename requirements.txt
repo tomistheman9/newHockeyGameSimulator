@@ -1,0 +1,3 @@
+# Hockey Game Simulator Requirements
+# This project uses only Python's built-in libraries.
+# Ensure you are using Python 3.8 or higher.
