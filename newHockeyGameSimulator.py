@@ -2,6 +2,20 @@ import random
 import sys
 from typing import List, Optional
 
+# =============================================================================
+# Data Structure Justified:
+#
+# - Lists are used throughout the project for collections (players, lines, teams)
+#   because they preserve order (important for game strategy and iteration), allow
+#   adaptable resizing and provide efficient appending and indexing.
+#
+# - Dictionaries were considered for fast lookups (thusly mapping jersey numbers to players)
+#   but were not used since the primary operations involve ordered iteration and random sampling.
+#
+# - Tuples are used for returning fixed size, immutable groups (such as score pairs) to 
+#   ensure that the returned structure remains constant and unchangeable.
+# =============================================================================
+
 # -----------------------------
 # Player, Line, and Team Classes
 # -----------------------------
@@ -34,6 +48,8 @@ class Player:
 
 class Line:
     def __init__(self, players: List[Player]):
+        # Using a list for players because the order matters (e.g., for line-up strategy)
+        # and because lists allow efficient iteration and random sampling.
         self.players = players
 
     def get_average_energy(self) -> float:
@@ -46,22 +62,31 @@ class Line:
         return sum(p.defensive_value for p in self.players) / len(self.players)
     
     def get_top_offensive_players(self, count: int = 3) -> List[Player]:
+        # Sorting returns a new list. We use a list here since we need an ordered collection
+        # of the top players to randomly choose a shooter.
         return sorted(self.players, key=lambda p: p.offensive_value, reverse=True)[:count]
     
     def get_lowest_energy_players(self, count: int = 3) -> List[Player]:
+        # Again, we use a list here to have an ordered collection of players with the lowest energy.
         return sorted(self.players, key=lambda p: p.energy)[:count]
 
 class Team:
     def __init__(self, city: str, name: str):
         self.city = city
         self.name = name
+        
+        # Using lists to store collections of players and goaltenders.
+        # Lists maintain insertion order, which is useful for iterating and managing team rosters.
         self.players: List[Player] = []      # all skaters
         self.goaltenders: List[Player] = []    # list of goaltenders
+        
+        # Using a list for lines allows us to maintain the order of the lines
+        # (which might be important for simulating game strategies) and facilitates random selection.
         self.lines: List[Line] = []            # list of 4 lines (each with 5 players)
         self.current_line: Optional[Line] = None
         self.active_goaltender: Optional[Player] = None
         
-        # Statistics
+        # Statistics (simple integers suffice for counting game stats)
         self.games_played = 0
         self.regular_wins = 0
         self.overtime_wins = 0
@@ -74,7 +99,7 @@ class Team:
         self.injuries = 0
 
     def generate_team(self) -> None:
-        # Create 18 skaters
+        # Create 18 skaters and add them to the players list.
         for _ in range(18):
             self.players.append(Player(
                 jersey_number=self._generate_unique_number(),
@@ -84,7 +109,7 @@ class Team:
                 position="Skater"
             ))
 
-        # Create 2 goaltenders
+        # Create 2 goaltenders and add them to the goaltenders list.
         for _ in range(2):
             self.goaltenders.append(Player(
                 jersey_number=self._generate_unique_number(),
@@ -94,7 +119,7 @@ class Team:
                 position="Goaltender"
             ))
 
-        # Create 4 lines (each with 5 skaters)
+        # Create 4 lines (each with 5 skaters) using lists to store each line.
         self._generate_lines()
         
         # Set starting active goaltender (highest defensive value)
@@ -103,6 +128,8 @@ class Team:
         self.current_line = self.lines[0]
 
     def _generate_unique_number(self) -> int:
+        # Combining players and goaltenders into one list and using a set comprehension to quickly
+        # check for uniqueness. A set is ideal here because it provides O(1) membership testing.
         used_numbers = {p.jersey_number for p in self.players + self.goaltenders}
         while True:
             num = random.randint(1, 99)
@@ -110,16 +137,16 @@ class Team:
                 return num
 
     def _generate_lines(self) -> None:
+        # Reset lines as an empty list before generating new lines.
         self.lines = []
-        available_players = self.players.copy()
-        # For each line, randomly sample 5 players.
-        # Note: a player may appear in more than one line, but not twice in the same line.
+        available_players = self.players.copy()  # Copying the list to avoid modifying the original roster.
+        # For each line, randomly sample 5 players. The list structure allows for random sampling.
         for _ in range(4):
             line_players = random.sample(available_players, 5)
             self.lines.append(Line(line_players))
 
     def _initial_update_active_goaltender(self) -> None:
-        # At team creation, simply choose the non-injured goalie with highest defensive value.
+        # Choose the best available goalie from the list (non-injured with highest defensive value).
         available = [g for g in self.goaltenders if not g.injured]
         if available:
             self.active_goaltender = max(available, key=lambda g: g.defensive_value)
@@ -224,6 +251,8 @@ class Team:
 
 class HockeyGameSimulator:
     def __init__(self):
+        # Using a list for teams because the order of teams is not critical,
+        # and lists allow easy random sampling and iteration.
         self.teams: List[Team] = []
         self.print_goals = True
         self.print_injuries = True
@@ -232,6 +261,8 @@ class HockeyGameSimulator:
 
     def create_league(self) -> None:
         # List of 32 unique cities and team names (format: City TeamName)
+        # Lists are used here because we need to preserve the order after shuffling,
+        # which is useful for random pairing.
         cities = ["New York", "Toronto", "Montreal", "Chicago", "Boston", "Los Angeles", 
                   "Vancouver", "Calgary", "Edmonton", "Ottawa", "Winnipeg", "San Jose", 
                   "Dallas", "Detroit", "Florida", "Nashville", "Carolina", "Minnesota", 
@@ -245,7 +276,7 @@ class HockeyGameSimulator:
                  "Capitals", "Golden Knights", "Kraken", "Ducks", "Avalanche", "Devils", 
                  "Islanders"]
         
-        # Shuffle to randomize pairings
+        # Shuffle lists to randomize pairings
         random.shuffle(cities)
         random.shuffle(names)
         
@@ -311,6 +342,7 @@ class HockeyGameSimulator:
             # Update energy for all players in both teams
             team1.update_line_energy()
             team2.update_line_energy()
+        # Returning a tuple because the score pair is a fixed-size, immutable set of values.
         return score1, score2
 
     def _simulate_team_iteration(self, attacking_team: Team, defending_team: Team, period: int) -> bool:
@@ -381,6 +413,7 @@ class HockeyGameSimulator:
                 break
             round_num += 1
 
+        # Returning a tuple for the final shootout score, as its size and structure are fixed.
         return score1, score2
 
     def _update_game_stats(self, team1: Team, team2: Team, team1_score: int, 
@@ -426,14 +459,16 @@ class HockeyGameSimulator:
         print(f"Goals Against: {team.goals_against}")
         print(f"Total Injuries: {team.injuries}")
 
-        # Skaters sorted by goals scored
+        # Skaters sorted by goals scored.
+        # List comprehension and sorting are used here because they provide a concise way to
+        # filter and order the players based on a given criterion.
         skaters = [p for p in team.players if p.position == "Skater"]
         skaters_sorted = sorted(skaters, key=lambda p: p.goals_scored, reverse=True)
         print("\nSkaters (sorted by goals scored):")
         for p in skaters_sorted:
             print(f"Player #{p.jersey_number} - Goals: {p.goals_scored}, Offensive Value: {p.offensive_value}")
 
-        # Goaltenders sorted by defensive value
+        # Goaltenders sorted by defensive value.
         goalies_sorted = sorted(team.goaltenders, key=lambda g: g.defensive_value, reverse=True)
         print("\nGoaltenders (sorted by defensive value):")
         for g in goalies_sorted:
